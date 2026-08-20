@@ -3,3 +3,11 @@ project-assistant
 meeting-analysis
 task-capture
 weekly-status
+funding-radar
+telegram-trigger
+domain-research
+paid-domain-research
+scheduler
+linkedin-profile-lookup
+linkedin-prospect-search
+seo-article-writer

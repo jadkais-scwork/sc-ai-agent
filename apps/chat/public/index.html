@@ -7,7 +7,7 @@
       name="description"
       content="A private, local workspace for reusable business agents."
     />
-    <title>Project Manager</title>
+    <title>My AI Agent</title>
     <link rel="stylesheet" href="/styles.css" />
     <script src="/agent.config.js" defer></script>
     <script src="/app.js" defer></script>
@@ -16,18 +16,22 @@
     <a class="skip-link" href="#message-input">Skip to message box</a>
 
     <main class="app-shell">
-      <aside class="agent-panel" aria-labelledby="agent-name">
+      <aside class="agent-panel" id="agent-panel" aria-labelledby="agent-name">
+        <button class="history-close" id="history-close" type="button">
+          <span aria-hidden="true">×</span>
+          <span class="visually-hidden">Close chat history</span>
+        </button>
         <div>
           <div class="brand">
-            <span class="brand__mark" id="agent-initials" aria-hidden="true">PM</span>
+            <span class="brand__mark" id="agent-initials" aria-hidden="true">AI</span>
             <div>
-              <p class="brand__eyebrow">My local agent</p>
-              <h1 id="agent-name">Project Manager</h1>
+              <p class="brand__eyebrow">Local workspace</p>
+              <h1 id="agent-name">My AI Agent</h1>
             </div>
           </div>
 
           <p class="agent-panel__subtitle" id="agent-subtitle">
-            Turn meetings, documents, and project ideas into clear next actions.
+            Pick an agent below. Each one has its own skills.
           </p>
 
           <div class="local-status">
@@ -38,13 +42,42 @@
 
         <section class="agent-selector" aria-labelledby="agent-selector-title">
           <p class="section-label" id="agent-selector-title">Agents</p>
-          <div class="agent-list" id="agent-list" role="list"></div>
+          <div class="agent-list" id="agent-list"></div>
+          <button class="workspace-settings-button" id="my-business-button" type="button">
+            My Business
+          </button>
+        </section>
+
+        <section class="history-panel" aria-labelledby="history-title">
+          <div class="history-panel__header">
+            <p class="section-label" id="history-title">Chats</p>
+            <button class="history-new" id="history-new" type="button">
+              New
+            </button>
+          </div>
+          <form class="history-search" id="history-search-form" role="search">
+            <label class="visually-hidden" for="history-search-input">
+              Search saved chats
+            </label>
+            <input
+              id="history-search-input"
+              type="search"
+              maxlength="200"
+              placeholder="Search chats"
+              autocomplete="off"
+            />
+          </form>
+          <p class="history-status" id="history-status" aria-live="polite"></p>
+          <div class="history-list" id="history-list" role="list"></div>
+          <button class="history-more" id="history-more" type="button" hidden>
+            Load more
+          </button>
         </section>
 
         <p class="privacy-note">
           <span aria-hidden="true">✦</span>
-          Files are prepared locally, then relevant text is sent to Claude when
-          you ask the agent.
+          Chats are saved locally in plaintext. Prompts and relevant file text
+          are sent to Claude when you ask the agent.
         </p>
       </aside>
 
@@ -55,24 +88,38 @@
               PM
             </span>
             <div>
-              <p class="chat-header__kicker">Conversation</p>
-              <h2 id="conversation-title">Ask <span id="conversation-agent-name">Project Manager</span></h2>
+              <p class="chat-header__kicker">Conversation · <span id="conversation-agent-name">Project Manager</span></p>
+              <h2 id="conversation-title"><span id="conversation-title-text">New conversation</span></h2>
             </div>
           </div>
 
-          <button class="reset-button" id="reset-button" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M4.93 4.93a10 10 0 1 1-1.79 11.46M3 8V3m0 0h5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-              />
-            </svg>
-            <span>New conversation</span>
-          </button>
+          <div class="chat-header__actions">
+            <button
+              class="history-button"
+              id="history-button"
+              type="button"
+              aria-controls="agent-panel"
+              aria-expanded="false"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 6h14M5 12h14M5 18h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8" />
+              </svg>
+              <span class="visually-hidden">Open chat history</span>
+            </button>
+            <button class="reset-button" id="reset-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M4.93 4.93a10 10 0 1 1-1.79 11.46M3 8V3m0 0h5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.8"
+                />
+              </svg>
+              <span>New conversation</span>
+            </button>
+          </div>
         </header>
 
         <div
@@ -107,7 +154,7 @@
                 name="message"
                 rows="2"
                 maxlength="8000"
-                placeholder="What should the Project Manager do?"
+                placeholder="What should your agent do?"
                 autocomplete="off"
                 required
               ></textarea>
@@ -259,6 +306,184 @@
             Cancel
           </button>
           <button class="send-button" type="submit">Add context</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="paste-dialog profile-dialog" id="profile-dialog">
+      <form class="paste-dialog__card" id="profile-form">
+        <div>
+          <p class="section-label">My Business</p>
+          <h2 id="profile-dialog-title">Help the agent write like you</h2>
+          <p>
+            Add what you know. You can leave anything blank and come back later.
+          </p>
+        </div>
+
+        <p class="profile-warning">
+          These answers are saved in your project folder. Remove customer names
+          and contact details from anything you paste here.
+        </p>
+
+        <div class="profile-identity">
+          <button
+            class="profile-avatar"
+            id="profile-avatar-button"
+            type="button"
+            aria-label="Choose a picture for this workspace"
+          >
+            <span class="profile-avatar__initials" id="profile-avatar-initials" aria-hidden="true"></span>
+            <span class="profile-avatar__edit" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M4 20h4l10-10a2.1 2.1 0 0 0-3-3L5 17v3Zm10.5-12.5 3 3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.9"
+                />
+              </svg>
+            </span>
+          </button>
+          <input
+            id="profile-avatar"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            hidden
+          />
+          <div class="profile-identity__fields">
+            <label for="profile-agent-name">What do you want to call this workspace?</label>
+            <input
+              id="profile-agent-name"
+              name="profile-agent-name"
+              maxlength="80"
+              placeholder="My AI Agent"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <label for="profile-business-name">What is your business called?</label>
+        <input
+          id="profile-business-name"
+          name="profile-business-name"
+          maxlength="120"
+          placeholder="MLAI"
+          autocomplete="organization"
+        />
+
+        <label for="profile-who">Who do you help?</label>
+        <textarea
+          id="profile-who"
+          name="profile-who"
+          maxlength="500"
+          rows="2"
+          placeholder="Australian small-business owners who want practical help with AI."
+        ></textarea>
+
+        <label for="profile-offer">What do you sell?</label>
+        <textarea
+          id="profile-offer"
+          name="profile-offer"
+          maxlength="600"
+          rows="2"
+          placeholder="AI training, advice and implementation support."
+        ></textarea>
+
+        <label for="profile-price">What does it cost? <span class="optional-label">Optional</span></label>
+        <textarea
+          id="profile-price"
+          name="profile-price"
+          maxlength="400"
+          rows="2"
+          placeholder="From $250, or leave this blank if prices vary."
+        ></textarea>
+
+        <label for="profile-boundaries">What don’t you do? <span class="optional-label">Optional</span></label>
+        <textarea
+          id="profile-boundaries"
+          name="profile-boundaries"
+          maxlength="600"
+          rows="2"
+          placeholder="We do not promise rankings or provide legal advice."
+        ></textarea>
+
+        <label for="profile-voice">How should it sound? <span class="optional-label">Optional</span></label>
+        <textarea
+          id="profile-voice"
+          name="profile-voice"
+          maxlength="400"
+          rows="2"
+          placeholder="Warm, clear and straight to the point. No jargon."
+        ></textarea>
+
+        <label for="profile-sample-1">
+          An email you sent that worked (this teaches it your voice)
+        </label>
+        <textarea
+          id="profile-sample-1"
+          name="profile-sample-1"
+          maxlength="1500"
+          rows="6"
+          placeholder="Paste a real email you wrote, with names removed."
+        ></textarea>
+
+        <label for="profile-sample-2">A second example (optional)</label>
+        <textarea
+          id="profile-sample-2"
+          name="profile-sample-2"
+          maxlength="1500"
+          rows="6"
+          placeholder="Another one, with names removed."
+        ></textarea>
+
+        <p class="profile-status" id="profile-status" role="status" aria-live="polite"></p>
+
+        <div class="paste-dialog__actions">
+          <button class="secondary-button" id="profile-cancel" type="button">
+            Cancel
+          </button>
+          <button class="send-button" id="profile-save" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog
+      class="paste-dialog agent-dialog"
+      id="agent-dialog"
+      aria-labelledby="agent-dialog-title"
+    >
+      <form class="paste-dialog__card" id="agent-dialog-form">
+        <div class="agent-dialog__heading">
+          <p class="section-label" id="agent-dialog-kicker">Agent</p>
+          <h2 id="agent-dialog-title">Agent</h2>
+          <p id="agent-dialog-description"></p>
+        </div>
+
+        <section class="agent-dialog__section" aria-labelledby="agent-dialog-skills-title">
+          <h3 id="agent-dialog-skills-title">Skill packages</h3>
+          <ul class="agent-dialog__skills" id="agent-dialog-skills"></ul>
+        </section>
+
+        <section class="agent-dialog__section" aria-labelledby="agent-dialog-settings-title">
+          <h3 id="agent-dialog-settings-title">What this agent should know</h3>
+          <div class="agent-dialog__fields" id="agent-dialog-fields"></div>
+        </section>
+
+        <p class="agent-dialog__sync" id="agent-dialog-sync"></p>
+        <p class="profile-status" id="agent-dialog-status" role="status" aria-live="polite"></p>
+
+        <div class="paste-dialog__actions">
+          <button class="secondary-button" id="agent-dialog-close" type="button">
+            Close
+          </button>
+          <button class="secondary-button" id="agent-dialog-chat" type="button">
+            Chat with agent
+          </button>
+          <button class="send-button" id="agent-dialog-save" type="submit">
+            Save
+          </button>
         </div>
       </form>
     </dialog>
